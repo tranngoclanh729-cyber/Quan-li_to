@@ -3,209 +3,806 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quản Lý Lớp Học</title>
-    <!-- Thư viện React & Tailwind -->
+    <title>Quản Lý Lớp Học Theo 4 Tổ</title>
+    <!-- Thư viện React, ReactDOM, Babel & Tailwind CSS -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 font-sans">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        // --- DỮ LIỆU & CẤU HÌNH BAN ĐẦU ---
+        // --- ICON HELPERS (Tối ưu để chạy trực tiếp trên trình duyệt) ---
+        const IconBase = ({ children, className = "w-4 h-4" }) => (
+          <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">{children}</svg>
+        );
+        const Users = (p) => <IconBase {...p}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></IconBase>;
+        const Award = (p) => <IconBase {...p}><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></IconBase>;
+        const AlertTriangle = (p) => <IconBase {...p}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></IconBase>;
+        const Calendar = (p) => <IconBase {...p}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></IconBase>;
+        const Shield = (p) => <IconBase {...p}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></IconBase>;
+        const Lock = (p) => <IconBase {...p}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></IconBase>;
+        const Eye = (p) => <IconBase {...p}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></IconBase>;
+        const EyeOff = (p) => <IconBase {...p}><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></IconBase>;
+        const Plus = (p) => <IconBase {...p}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></IconBase>;
+        const Trash2 = (p) => <IconBase {...p}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></IconBase>;
+        const Edit3 = (p) => <IconBase {...p}><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></IconBase>;
+        const CheckCircle = (p) => <IconBase {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></IconBase>;
+        const RefreshCw = (p) => <IconBase {...p}><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></IconBase>;
+        const ChevronRight = (p) => <IconBase {...p}><polyline points="9 18 15 12 9 6"></polyline></IconBase>;
+        const Search = (p) => <IconBase {...p}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></IconBase>;
+        const ArrowRightLeft = (p) => <IconBase {...p}><polyline points="17 1 21 5 17 9"></polyline><path d="M3 5h18"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 19H3"></path></IconBase>;
+        const FileSpreadsheet = (p) => <IconBase {...p}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><line x1="10" y1="9" x2="10" y2="9.01"></line></IconBase>;
+        const Star = (p) => <IconBase {...p}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></IconBase>;
+        const UserCheck = (p) => <IconBase {...p}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></IconBase>;
+        const Settings = (p) => <IconBase {...p}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></IconBase>;
+        const LogOut = (p) => <IconBase {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></IconBase>;
+        const ChevronDown = (p) => <IconBase {...p}><polyline points="6 9 12 15 18 9"></polyline></IconBase>;
+        const Trophy = (p) => <IconBase {...p}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17"></path><path d="M14 14.66V17"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></IconBase>;
+
+        // --- CONSTANTS & INITIAL DATA ---
         const WEEKS_COUNT = 36;
         const DEFAULT_ADMIN_PASS = "12356";
 
         const DEFAULT_INFRACTIONS_LIST = [
-            { id: 'i1', name: 'Đi học muộn', points: 2 },
-            { id: 'i2', name: 'Không làm bài tập về nhà', points: 5 },
-            { id: 'i3', name: 'Không mặc đồng phục', points: 3 },
-            { id: 'i4', name: 'Mất trật tự trong giờ học', points: 2 },
-            { id: 'i5', name: 'Sử dụng điện thoại riêng', points: 5 },
-            { id: 'i6', name: 'Không trực nhật', points: 5 },
-            { id: 'i7', name: 'Nói chuyện riêng / Ăn vặt', points: 2 }
+          { id: 'i1', name: 'Đi học muộn', points: 2 },
+          { id: 'i2', name: 'Không làm bài tập về nhà', points: 5 },
+          { id: 'i3', name: 'Không mặc đồng phục', points: 3 },
+          { id: 'i4', name: 'Mất trật tự trong giờ học', points: 2 },
+          { id: 'i5', name: 'Sử dụng điện thoại riêng', points: 5 },
+          { id: 'i6', name: 'Không trực nhật', points: 5 },
+          { id: 'i7', name: 'Nói chuyện riêng / Ăn vặt', points: 2 }
         ];
 
         const INITIAL_STUDENTS = [
-            // Tổ 1
-            { id: 's101', name: 'Nguyễn Văn An', teamId: 1, phone: '0912345671' },
-            { id: 's102', name: 'Trần Thị Bình', teamId: 1, phone: '0912345672' },
-            { id: 's103', name: 'Lê Hoàng Cường', teamId: 1, phone: '0912345673' },
-            { id: 's104', name: 'Phạm Minh Đức', teamId: 1, phone: '0912345674' },
-            // Tổ 2
-            { id: 's201', name: 'Hoàng Thảo Giang', teamId: 2, phone: '0912345675' },
-            { id: 's202', name: 'Vũ Quốc Hải', teamId: 2, phone: '0912345676' },
-            { id: 's203', name: 'Đặng Mai Huế', teamId: 2, phone: '0912345677' },
-            { id: 's204', name: 'Bùi Tuấn Kiệt', teamId: 2, phone: '0912345678' },
-            // Tổ 3
-            { id: 's301', name: 'Đỗ Thúy Linh', teamId: 3, phone: '0912345679' },
-            { id: 's302', name: 'Ngô Quang Nam', teamId: 3, phone: '0912345680' },
-            { id: 's303', name: 'Dương Yến Nhi', teamId: 3, phone: '0912345681' },
-            { id: 's304', name: 'Lý Phúc Phong', teamId: 3, phone: '0912345682' },
-            // Tổ 4
-            { id: 's401', name: 'Phan Thanh Sơn', teamId: 4, phone: '0912345683' },
-            { id: 's402', name: 'Trịnh Ngọc Trinh', teamId: 4, phone: '0912345684' },
-            { id: 's403', name: 'Cao Quốc Uy', teamId: 4, phone: '0912345685' },
-            { id: 's404', name: 'Hồ Tường Vy', teamId: 4, phone: '0912345686' }
+          { id: 's101', name: 'Nguyễn Văn An', teamId: 1, phone: '0912345671' },
+          { id: 's102', name: 'Trần Thị Bình', teamId: 1, phone: '0912345672' },
+          { id: 's103', name: 'Lê Hoàng Cường', teamId: 1, phone: '0912345673' },
+          { id: 's104', name: 'Phạm Minh Đức', teamId: 1, phone: '0912345674' },
+          { id: 's201', name: 'Hoàng Thảo Giang', teamId: 2, phone: '0912345675' },
+          { id: 's202', name: 'Vũ Quốc Hải', teamId: 2, phone: '0912345676' },
+          { id: 's203', name: 'Đặng Mai Huệ', teamId: 2, phone: '0912345677' },
+          { id: 's204', name: 'Bùi Tuấn Kiệt', teamId: 2, phone: '0912345678' },
+          { id: 's301', name: 'Đỗ Thúy Linh', teamId: 3, phone: '0912345679' },
+          { id: 's302', name: 'Ngô Quang Nam', teamId: 3, phone: '0912345680' },
+          { id: 's303', name: 'Dương Yến Nhi', teamId: 3, phone: '0912345681' },
+          { id: 's304', name: 'Lý Phúc Phong', teamId: 3, phone: '0912345682' },
+          { id: 's401', name: 'Phan Thanh Sơn', teamId: 4, phone: '0912345683' },
+          { id: 's402', name: 'Trịnh Ngọc Trinh', teamId: 4, phone: '0912345684' },
+          { id: 's403', name: 'Cao Quốc Uy', teamId: 4, phone: '0912345685' },
+          { id: 's404', name: 'Hồ Tường Vy', teamId: 4, phone: '0912345686' }
         ];
 
-        const INITIAL_RECORDS = {
-            speechSample: [
-                { id: 'r1', studentId: 's101', teamId: 1, week: 1, type: 'speech', count: 2, timestamp: '07:10 12/10' },
-                { id: 'r2', studentId: 's202', teamId: 2, week: 1, type: 'speech', count: 1, timestamp: '07:15 13/10' }
-            ],
-            infractionsSample: [
-                { id: 'r6', studentId: 's103', teamId: 1, week: 1, type: 'infraction', title: 'Đi học muộn', points: 2, timestamp: '09:10 12/10' },
-                { id: 'r7', studentId: 's202', teamId: 2, week: 1, type: 'infraction', title: 'Không làm bài tập về nhà', points: 5, timestamp: '07:15 13/10' }
-            ]
-        };
+        const INITIAL_RECORDS = [
+          { id: 'r1', studentId: 's101', teamId: 1, week: 1, type: 'speech', count: 3, timestamp: '10:15 12/10' },
+          { id: 'r2', studentId: 's102', teamId: 1, week: 1, type: 'speech', count: 2, timestamp: '11:00 12/10' },
+          { id: 'r3', studentId: 's201', teamId: 2, week: 1, type: 'speech', count: 4, timestamp: '08:30 13/10' },
+          { id: 'r4', studentId: 's301', teamId: 3, week: 1, type: 'speech', count: 5, timestamp: '14:20 13/10' },
+          { id: 'r5', studentId: 's103', teamId: 1, week: 1, type: 'infraction', title: 'Mất trật tự trong giờ học', points: 2, timestamp: '09:10 12/10' },
+          { id: 'r6', studentId: 's202', teamId: 2, week: 1, type: 'infraction', title: 'Đi học muộn', points: 2, timestamp: '07:15 13/10' },
+          { id: 'r7', studentId: 's202', teamId: 2, week: 1, type: 'infraction', title: 'Không làm bài tập về nhà', points: 5, timestamp: '08:00 14/10' },
+          { id: 'r8', studentId: 's402', teamId: 4, week: 1, type: 'infraction', title: 'Không mặc đồng phục', points: 3, timestamp: '07:20 12/10' }
+        ];
 
         function App() {
-            const [currentWeek, setCurrentWeek] = useState(1);
-            const [selectedWeekTab, setSelectedWeekTab] = useState('overview');
-            const [activeTab, setActiveTab] = useState('overview');
-            const [role, setRole] = useState('guest'); // guest, verifier, admin
+          const [currentWeek, setCurrentWeek] = useState(1);
+          const [selectedWeekTab, setSelectedWeekTab] = useState(1);
+          const [activeTab, setActiveTab] = useState('overview'); 
+          const [role, setRole] = useState('guest'); 
+          
+          const [showLoginModal, setShowLoginModal] = useState(false);
+          const [loginRoleTarget, setLoginRoleTarget] = useState('admin');
+          const [inputPassword, setInputPassword] = useState('');
+          const [showPassword, setShowPassword] = useState(false);
+          const [authError, setAuthError] = useState('');
 
-            const [showLoginModal, setShowLoginModal] = useState(false);
-            const [loginRoleTarget, setLoginRoleTarget] = useState('admin');
-            const [inputPassword, setInputPassword] = useState('');
-            const [showPassword, setShowPassword] = useState(false);
-            const [authError, setAuthError] = useState('');
+          const [students, setStudents] = useState(() => {
+            const saved = localStorage.getItem('class_students');
+            return saved ? JSON.parse(saved) : INITIAL_STUDENTS;
+          });
 
-            // Local Storage data
-            const [students, setStudents] = useState(() => {
-                const saved = localStorage.getItem('class_students');
-                return saved ? JSON.parse(saved) : INITIAL_STUDENTS;
-            });
+          const [records, setRecords] = useState(() => {
+            const saved = localStorage.getItem('class_records');
+            return saved ? JSON.parse(saved) : INITIAL_RECORDS;
+          });
 
-            const [records, setRecords] = useState(() => {
-                const saved = localStorage.getItem('class_records');
-                return saved ? JSON.parse(saved) : INITIAL_RECORDS;
-            });
+          const [infractionsList, setInfractionsList] = useState(() => {
+            const saved = localStorage.getItem('class_infractions_catalog');
+            return saved ? JSON.parse(saved) : DEFAULT_INFRACTIONS_LIST;
+          });
 
-            const [infractionsList, setInfractionsList] = useState(() => {
-                const saved = localStorage.getItem('class_infractions_catalog');
-                return saved ? JSON.parse(saved) : DEFAULT_INFRACTIONS_LIST;
-            });
+          const [pendingWeek, setPendingWeek] = useState(1);
+          const [showWeekModal, setShowWeekModal] = useState(false);
 
-            const [notification, setNotification] = useState(null);
+          const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+          const [newStudent, setNewStudent] = useState({ name: '', teamId: 1, phone: '' });
+          const [editingStudent, setEditingStudent] = useState(null);
+          
+          const [showTransferModal, setShowTransferModal] = useState(false);
+          const [transferTarget, setTransferTarget] = useState({ studentId: '', toTeamId: 1 });
 
-            const showNotification = (msg, type = 'success') => {
-                setNotification({ msg, type });
-                setTimeout(() => setNotification(null), 3000);
+          const [showInfractionModal, setShowInfractionModal] = useState(false);
+          const [newInfractionItem, setNewInfractionItem] = useState({ name: '', points: 2 });
+
+          const [gradingTeam, setGradingTeam] = useState(1);
+          const [selectedStudentForGrading, setSelectedStudentForGrading] = useState('');
+          const [speechIncrement, setSpeechIncrement] = useState(1);
+          const [selectedInfractionId, setSelectedInfractionId] = useState('');
+          const [customInfractionDesc, setCustomInfractionDesc] = useState('');
+
+          const [toast, setToast] = useState(null);
+
+          useEffect(() => {
+            localStorage.setItem('class_students', JSON.stringify(students));
+          }, [students]);
+
+          useEffect(() => {
+            localStorage.setItem('class_records', JSON.stringify(records));
+          }, [records]);
+
+          useEffect(() => {
+            localStorage.setItem('class_infractions_catalog', JSON.stringify(infractionsList));
+          }, [infractionsList]);
+
+          const showNotification = (msg, type = 'success') => {
+            setToast({ msg, type });
+            setTimeout(() => setToast(null), 3000);
+          };
+
+          const handleLogin = (e) => {
+            e.preventDefault();
+            setAuthError('');
+            if (loginRoleTarget === 'admin') {
+              if (inputPassword === DEFAULT_ADMIN_PASS) {
+                setRole('admin');
+                setShowLoginModal(false);
+                setInputPassword('');
+                showNotification('Đã đăng nhập quyền Quản trị viên (Admin)!');
+              } else {
+                setAuthError('Mật khẩu Admin không đúng!');
+              }
+            } else if (loginRoleTarget === 'verifier') {
+              if (inputPassword === '123') {
+                setRole('verifier');
+                setShowLoginModal(false);
+                setInputPassword('');
+                showNotification('Đã đăng nhập quyền Người duyệt (Tổ trưởng)!');
+              } else {
+                setAuthError('Mật khẩu người duyệt không đúng! (Gợi ý: 123)');
+              }
+            }
+          };
+
+          const handleLogout = () => {
+            setRole('guest');
+            showNotification('Đã quay về quyền Khách');
+          };
+
+          const confirmWeekChange = () => {
+            setCurrentWeek(pendingWeek);
+            setSelectedWeekTab(pendingWeek);
+            setShowWeekModal(false);
+            showNotification(`Đã chuyển sang Tuần học ${pendingWeek}!`);
+          };
+
+          const handleAddStudent = (e) => {
+            e.preventDefault();
+            if (!newStudent.name.trim()) return;
+            const created = {
+              id: 's_' + Date.now(),
+              name: newStudent.name.trim(),
+              teamId: Number(newStudent.teamId),
+              phone: newStudent.phone.trim() || 'Chưa cập nhật'
+            };
+            setStudents([...students, created]);
+            setNewStudent({ name: '', teamId: 1, phone: '' });
+            setShowAddStudentModal(false);
+            showNotification(`Đã thêm học sinh ${created.name}`);
+          };
+
+          const handleUpdateStudent = (e) => {
+            e.preventDefault();
+            if (!editingStudent) return;
+            setStudents(students.map(s => s.id === editingStudent.id ? editingStudent : s));
+            setEditingStudent(null);
+            showNotification('Cập nhật thông tin học sinh thành công');
+          };
+
+          const handleDeleteStudent = (id, name) => {
+            if (window.confirm(`Bạn có chắc muốn xóa học sinh "${name}"?`)) {
+              setStudents(students.filter(s => s.id !== id));
+              showNotification(`Đã xóa học sinh ${name}`);
+            }
+          };
+
+          const handleTransferTeam = (e) => {
+            e.preventDefault();
+            const { studentId, toTeamId } = transferTarget;
+            if (!studentId) return;
+            setStudents(students.map(s => s.id === studentId ? { ...s, teamId: Number(toTeamId) } : s));
+            setShowTransferModal(false);
+            showNotification('Chuyển tổ thành công!');
+          };
+
+          const handleAddSpeech = () => {
+            if (!selectedStudentForGrading) {
+              showNotification('Vui lòng chọn học sinh!', 'error');
+              return;
+            }
+            const student = students.find(s => s.id === selectedStudentForGrading);
+            if (!student) return;
+
+            const newRecord = {
+              id: 'r_' + Date.now(),
+              studentId: student.id,
+              teamId: student.teamId,
+              week: selectedWeekTab,
+              type: 'speech',
+              count: Number(speechIncrement),
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })
             };
 
-            const handleLogin = (e) => {
-                e.preventDefault();
-                if (loginRoleTarget === 'admin') {
-                    if (inputPassword === DEFAULT_ADMIN_PASS) {
-                        setRole('admin');
-                        setShowLoginModal(false);
-                        setInputPassword('');
-                        showNotification('Đã đăng nhập quyền Quản trị viên!');
-                    } else {
-                        setAuthError('Mật khẩu quản trị không đúng.');
-                    }
-                } else if (loginRoleTarget === 'verifier') {
-                    setRole('verifier');
-                    setShowLoginModal(false);
-                    setInputPassword('');
-                    showNotification('Đã chuyển sang phân quyền Người Duyệt.');
-                }
+            setRecords([newRecord, ...records]);
+            showNotification(`Đã cộng ${speechIncrement} lượt phát biểu cho ${student.name}`);
+          };
+
+          const handleAddInfractionRecord = () => {
+            if (!selectedStudentForGrading) {
+              showNotification('Vui lòng chọn học sinh!', 'error');
+              return;
+            }
+            const student = students.find(s => s.id === selectedStudentForGrading);
+            if (!student) return;
+
+            let title = '';
+            let points = 2;
+
+            if (selectedInfractionId === 'custom') {
+              if (!customInfractionDesc.trim()) {
+                showNotification('Vui lòng nhập mô tả lỗi!', 'error');
+                return;
+              }
+              title = customInfractionDesc.trim();
+              points = 2;
+            } else {
+              const found = infractionsList.find(i => i.id === selectedInfractionId);
+              if (!found) {
+                showNotification('Vui lòng chọn lỗi vi phạm!', 'error');
+                return;
+              }
+              title = found.name;
+              points = found.points;
+            }
+
+            const newRecord = {
+              id: 'r_' + Date.now(),
+              studentId: student.id,
+              teamId: student.teamId,
+              week: selectedWeekTab,
+              type: 'infraction',
+              title,
+              points: Number(points),
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })
             };
 
-            const handleLogout = () => {
-                setRole('guest');
-                showNotification('Đã quay về giao diện Khách');
+            setRecords([newRecord, ...records]);
+            setCustomInfractionDesc('');
+            showNotification(`Đã ghi nhận vi phạm cho ${student.name}`);
+          };
+
+          const handleDeleteRecord = (recordId) => {
+            if (role === 'guest') {
+              showNotification('Khách không có quyền xóa bản ghi này', 'error');
+              return;
+            }
+            setRecords(records.filter(r => r.id !== recordId));
+            showNotification('Đã xóa bản ghi');
+          };
+
+          const handleAddInfractionCatalog = (e) => {
+            e.preventDefault();
+            if (!newInfractionItem.name.trim()) return;
+            const newItem = {
+              id: 'i_' + Date.now(),
+              name: newInfractionItem.name.trim(),
+              points: Number(newInfractionItem.points) || 1
             };
+            setInfractionsList([...infractionsList, newItem]);
+            setNewInfractionItem({ name: '', points: 2 });
+            setShowInfractionModal(false);
+            showNotification('Thêm vi phạm mẫu thành công');
+          };
 
-            return (
-                <div className="min-h-screen bg-slate-50 text-slate-800 pb-16">
-                    {/* Notification Toast */}
-                    {notification && (
-                        <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg text-white ${notification.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'}`}>
-                            {notification.msg}
-                        </div>
-                    )}
+          const handleDeleteInfractionCatalog = (id) => {
+            setInfractionsList(infractionsList.filter(i => i.id !== id));
+            showNotification('Đã xóa danh mục lỗi mẫu');
+          };
 
-                    {/* Header */}
-                    <header className="bg-indigo-900 text-white shadow-md sticky top-0 z-40">
-                        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-                            <div className="flex items-center space-x-3">
-                                <h1 className="text-xl font-bold">Quản Lý Lớp Học</h1>
-                                <span className="text-xs bg-indigo-700 px-2.5 py-1 rounded-full">Tuần {currentWeek}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                {role === 'guest' ? (
-                                    <button onClick={() => { setLoginRoleTarget('admin'); setShowLoginModal(true); setAuthError(''); }} className="bg-indigo-700 hover:bg-indigo-600 px-3 py-1.5 rounded-lg text-xs font-semibold">
-                                        Đăng Nhập
-                                    </button>
-                                ) : (
-                                    <div className="flex items-center space-x-2">
-                                        <span className="text-xs bg-emerald-600 px-2 py-1 rounded">Quyền: {role.toUpperCase()}</span>
-                                        <button onClick={handleLogout} className="bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-xs font-semibold">
-                                            Đăng Xuất
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </header>
+          const maskPhone = (phone) => {
+            if (!phone) return 'Chưa cập nhật';
+            if (role === 'admin' || role === 'verifier') return phone;
+            return phone.substring(0, 3) + '****' + phone.slice(-3);
+          };
 
-                    {/* Main Content */}
-                    <main className="max-w-7xl mx-auto px-4 py-6">
-                        <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
-                            <h2 className="text-2xl font-bold text-indigo-900 mb-2">Chào mừng đến với Hệ thống Quản Lý Lớp Học</h2>
-                            <p className="text-slate-600 mb-6">Ứng dụng đã hoạt động thành công trên GitHub Pages!</p>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-                                <div className="p-4 bg-indigo-50 rounded-xl">
-                                    <h3 className="font-semibold text-indigo-900 mb-1">📊 Tổng số học sinh</h3>
-                                    <p className="text-2xl font-bold text-indigo-600">{students.length} em</p>
-                                </div>
-                                <div className="p-4 bg-emerald-50 rounded-xl">
-                                    <h3 className="font-semibold text-emerald-900 mb-1">⭐ Tổng số tổ</h3>
-                                    <p className="text-2xl font-bold text-emerald-600">4 Tổ</p>
-                                </div>
-                                <div className="p-4 bg-amber-50 rounded-xl">
-                                    <h3 className="font-semibold text-amber-900 mb-1">⚠️ Trạng thái</h3>
-                                    <p className="text-2xl font-bold text-amber-600">Hoạt động tốt</p>
-                                </div>
-                            </div>
-                        </div>
-                    </main>
+          const teamStats = useMemo(() => {
+            const teams = [1, 2, 3, 4];
+            return teams.map(teamId => {
+              const members = students.filter(s => s.teamId === teamId);
+              const speechesWeek = records.filter(r => r.teamId === teamId && r.week === selectedWeekTab && r.type === 'speech').reduce((acc, curr) => acc + (curr.count || 0), 0);
+              const speechesYear = records.filter(r => r.teamId === teamId && r.type === 'speech').reduce((acc, curr) => acc + (curr.count || 0), 0);
+              const infractionsWeek = records.filter(r => r.teamId === teamId && r.week === selectedWeekTab && r.type === 'infraction');
+              const penaltyPointsWeek = infractionsWeek.reduce((acc, curr) => acc + (curr.points || 0), 0);
+              const weeklyScore = 100 + (speechesWeek * 2) - penaltyPointsWeek;
 
-                    {/* Login Modal */}
-                    {showLoginModal && (
-                        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
-                                <h3 className="text-lg font-bold text-slate-800 mb-4">Đăng Nhập Quản Trị</h3>
-                                <form onSubmit={handleLogin}>
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Mật khẩu Admin (Mặc định: 12356)</label>
-                                        <input 
-                                            type="password" 
-                                            value={inputPassword} 
-                                            onChange={(e) => setInputPassword(e.target.value)}
-                                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                                            placeholder="Nhập mật khẩu..."
-                                            required
-                                        />
-                                    </div>
-                                    {authError && <p className="text-red-500 text-sm mb-4">{authError}</p>}
-                                    <div className="flex justify-end space-x-3">
-                                        <button type="button" onClick={() => setShowLoginModal(false)} className="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-50">Hủy</button>
-                                        <button type="submit" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold">Đăng Nhập</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    )}
+              const memberSpeechMap = {};
+              records.filter(r => r.teamId === teamId && r.week === selectedWeekTab && r.type === 'speech')
+                .forEach(r => { memberSpeechMap[r.studentId] = (memberSpeechMap[r.studentId] || 0) + (r.count || 0); });
+
+              const topContributors = Object.entries(memberSpeechMap)
+                .map(([sId, count]) => ({ student: students.find(s => s.id === sId), count }))
+                .filter(item => item.student)
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 3);
+
+              return { teamId, memberCount: members.length, speechesWeek, speechesYear, infractionsWeek, penaltyPointsWeek, weeklyScore, topContributors };
+            });
+          }, [students, records, selectedWeekTab]);
+
+          const studentRankings = useMemo(() => {
+            return students.map(st => {
+              const speechesWeek = records.filter(r => r.studentId === st.id && r.week === selectedWeekTab && r.type === 'speech').reduce((acc, curr) => acc + curr.count, 0);
+              const infractionsWeek = records.filter(r => r.studentId === st.id && r.week === selectedWeekTab && r.type === 'infraction');
+              const penaltyWeek = infractionsWeek.reduce((acc, curr) => acc + curr.points, 0);
+              const speechesYear = records.filter(r => r.studentId === st.id && r.type === 'speech').reduce((acc, curr) => acc + curr.count, 0);
+              return { ...st, speechesWeek, infractionsCountWeek: infractionsWeek.length, penaltyWeek, speechesYear, scoreWeek: (speechesWeek * 2) - penaltyWeek };
+            }).sort((a, b) => b.scoreWeek - a.scoreWeek);
+          }, [students, records, selectedWeekTab]);
+
+          return (
+            <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col">
+              {toast && (
+                <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white font-medium text-sm flex items-center space-x-2 ${toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'}`}>
+                  <span>{toast.msg}</span>
                 </div>
-            );
+              )}
+
+              <header className="bg-indigo-900 text-white shadow-md sticky top-0 z-30">
+                <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-indigo-700 rounded-lg">
+                      <Users className="w-6 h-6 text-indigo-200" />
+                    </div>
+                    <div>
+                      <h1 className="text-xl font-bold tracking-tight">QUẢN LÝ LỚP HỌC THEO 4 TỔ</h1>
+                      <p className="text-xs text-indigo-200">Hệ thống Thi đua & Kỷ luật</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-indigo-800/80 border border-indigo-700 px-3 py-1.5 rounded-lg flex items-center space-x-2 text-sm">
+                      <Calendar className="w-4 h-4 text-indigo-300" />
+                      <span>Tuần: <strong className="text-amber-300">{currentWeek}</strong></span>
+                      {role === 'admin' && (
+                        <button onClick={() => { setPendingWeek(currentWeek); setShowWeekModal(true); }} className="ml-2 text-xs bg-amber-500 hover:bg-amber-600 text-slate-900 px-2 py-0.5 rounded font-semibold">
+                          Đổi
+                        </button>
+                      )}
+                    </div>
+
+                    {role === 'guest' ? (
+                      <button onClick={() => { setShowLoginModal(true); setLoginRoleTarget('admin'); }} className="flex items-center space-x-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-2 rounded-lg font-medium">
+                        <Lock className="w-3.5 h-3.5" />
+                        <span>Đăng nhập</span>
+                      </button>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${role === 'admin' ? 'bg-rose-500/20 text-rose-200 border-rose-400' : 'bg-emerald-500/20 text-emerald-200 border-emerald-400'}`}>
+                          {role === 'admin' ? 'Admin' : 'Người duyệt'}
+                        </span>
+                        <button onClick={handleLogout} className="text-xs text-indigo-200 hover:text-white bg-indigo-800 p-1.5 rounded-lg" title="Đăng xuất">
+                          <LogOut className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </header>
+
+              <div className="bg-white border-b border-slate-200 shadow-sm sticky top-[61px] z-20">
+                <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between overflow-x-auto gap-2">
+                  <div className="flex items-center space-x-1 shrink-0">
+                    <span className="text-xs font-semibold text-slate-500 uppercase mr-2 flex items-center">
+                      <Calendar className="w-3.5 h-3.5 mr-1" /> Chọn Tuần xem:
+                    </span>
+                    <select value={selectedWeekTab} onChange={(e) => setSelectedWeekTab(Number(e.target.value))} className="bg-slate-100 border border-slate-300 text-slate-800 text-sm rounded-md px-3 py-1 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                      {Array.from({ length: WEEKS_COUNT }, (_, i) => i + 1).map((w) => (
+                        <option key={w} value={w}>Tuần {w} {w === currentWeek ? '(Hiện tại)' : ''}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <nav className="bg-white border-b border-slate-200">
+                <div className="max-w-7xl mx-auto px-4 flex overflow-x-auto space-x-1 py-1">
+                  {[
+                    { id: 'overview', label: '1. TỔNG QUAN', icon: Users },
+                    { id: 'self-grade', label: '2. TỔ TỰ CHẤM', icon: UserCheck },
+                    { id: 'students', label: '3. HỌC SINH & TỔ', icon: Settings },
+                    { id: 'infractions', label: '4. MẪU VI PHẠM', icon: AlertTriangle },
+                    { id: 'duty', label: '5. LỊCH TRỰC NHẬT', icon: Calendar },
+                    { id: 'ranking', label: '6. BẢNG XẾP HẠNG', icon: Trophy }
+                  ].map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center space-x-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-lg whitespace-nowrap transition-colors ${isActive ? 'bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
+                        <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
+                        <span>{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </nav>
+
+              <main className="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
+                {activeTab === 'overview' && (
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center bg-indigo-50 border border-indigo-100 rounded-xl p-4">
+                      <div>
+                        <h2 className="text-lg font-bold text-indigo-950">Bảng Tổng Quan Hoạt Động 4 Tổ</h2>
+                        <p className="text-xs text-indigo-700">Thống kê Tuần {selectedWeekTab}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {teamStats.map((team) => (
+                        <div key={team.teamId} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                          <div className={`p-4 border-b flex justify-between items-center ${team.teamId === 1 ? 'bg-blue-50 text-blue-900' : team.teamId === 2 ? 'bg-emerald-50 text-emerald-900' : team.teamId === 3 ? 'bg-amber-50 text-amber-900' : 'bg-purple-50 text-purple-900'}`}>
+                            <div className="flex items-center space-x-2">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${team.teamId === 1 ? 'bg-blue-600' : team.teamId === 2 ? 'bg-emerald-600' : team.teamId === 3 ? 'bg-amber-600' : 'bg-purple-600'}`}>
+                                T{team.teamId}
+                              </div>
+                              <div>
+                                <h3 className="font-bold text-base">TỔ {team.teamId}</h3>
+                                <p className="text-xs opacity-80">{team.memberCount} thành viên</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-xs font-medium block opacity-75">Điểm Tuần</span>
+                              <span className="text-xl font-black">{team.weeklyScore} đ</span>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-3 divide-x divide-slate-100 bg-slate-50 border-b border-slate-100 text-center py-2.5 px-2">
+                            <div>
+                              <span className="text-[11px] text-slate-500 block">Phát biểu</span>
+                              <strong className="text-sm font-bold text-emerald-600">+{team.speechesWeek}</strong>
+                            </div>
+                            <div>
+                              <span className="text-[11px] text-slate-500 block">Vi phạm</span>
+                              <strong className="text-sm font-bold text-rose-600">{team.infractionsWeek.length}</strong>
+                            </div>
+                            <div>
+                              <span className="text-[11px] text-slate-500 block">Điểm trừ</span>
+                              <strong className="text-sm font-bold text-rose-600">-{team.penaltyPointsWeek}</strong>
+                            </div>
+                          </div>
+
+                          <div className="p-4 flex-1 flex flex-col space-y-4">
+                            <div>
+                              <h4 className="text-xs font-bold uppercase text-slate-600 tracking-wider mb-2">Vi phạm Tuần {selectedWeekTab}</h4>
+                              {team.infractionsWeek.length === 0 ? (
+                                <div className="bg-slate-50 rounded-lg p-3 text-center border border-dashed border-slate-200">
+                                  <p className="text-xs text-slate-500">🎉 Không có vi phạm nào.</p>
+                                </div>
+                              ) : (
+                                <div className="space-y-2 max-h-48 overflow-y-auto">
+                                  {team.infractionsWeek.map((item) => {
+                                    const student = students.find(s => s.id === item.studentId);
+                                    return (
+                                      <div key={item.id} className="bg-rose-50/60 border border-rose-100 rounded-lg p-2.5 flex items-center justify-between text-xs">
+                                        <div>
+                                          <span className="font-semibold text-slate-800">{student ? student.name : 'Đã xóa'}</span>
+                                          <p className="text-rose-700 font-medium">{item.title}</p>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                          <span className="bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded text-[11px]">-{item.points}đ</span>
+                                          {(role === 'admin' || role === 'verifier') && (
+                                            <button onClick={() => handleDeleteRecord(item.id)} className="text-slate-400 hover:text-rose-600 p-1">
+                                              <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'self-grade' && (
+                  <div className="max-w-3xl mx-auto space-y-6">
+                    <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                      <h2 className="text-lg font-bold text-slate-900 mb-1 flex items-center">
+                        <UserCheck className="w-5 h-5 text-indigo-600 mr-2" />
+                        Tổ Tự Chấm Điểm
+                      </h2>
+                      <p className="text-xs text-slate-500 mb-6">Ghi nhận phát biểu hoặc vi phạm cho học sinh.</p>
+
+                      <div className="space-y-5">
+                        <div>
+                          <label className="block text-xs font-bold uppercase text-slate-600 mb-2">Bước 1: Chọn Tổ</label>
+                          <div className="grid grid-cols-4 gap-2">
+                            {[1, 2, 3, 4].map(tId => (
+                              <button key={tId} onClick={() => { setGradingTeam(tId); setSelectedStudentForGrading(''); }} className={`py-2.5 rounded-lg font-bold text-sm border ${gradingTeam === tId ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 text-slate-700 border-slate-200'}`}>
+                                Tổ {tId}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold uppercase text-slate-600 mb-2">Bước 2: Chọn Học Sinh</label>
+                          <select value={selectedStudentForGrading} onChange={(e) => setSelectedStudentForGrading(e.target.value)} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm font-medium">
+                            <option value="">-- Chọn học sinh --</option>
+                            {students.filter(s => s.teamId === gradingTeam).map(s => (
+                              <option key={s.id} value={s.id}>{s.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="pt-4 border-t border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="bg-emerald-50/50 border border-emerald-200 rounded-xl p-4 space-y-3">
+                            <h3 className="font-bold text-emerald-900 text-sm">Cộng Phát Biểu</h3>
+                            <input type="number" min="1" max="20" value={speechIncrement} onChange={(e) => setSpeechIncrement(e.target.value)} className="w-full bg-white border border-slate-300 rounded-lg p-2 text-sm" />
+                            <button onClick={handleAddSpeech} disabled={!selectedStudentForGrading} className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-bold py-2.5 rounded-lg text-xs">
+                              + Cộng Lượt Phát Biểu
+                            </button>
+                          </div>
+
+                          <div className="bg-rose-50/50 border border-rose-200 rounded-xl p-4 space-y-3">
+                            <h3 className="font-bold text-rose-900 text-sm">Ghi Nhận Vi Phạm</h3>
+                            <select value={selectedInfractionId} onChange={(e) => setSelectedInfractionId(e.target.value)} className="w-full bg-white border border-slate-300 rounded-lg p-2 text-sm">
+                              <option value="">-- Chọn lỗi --</option>
+                              {infractionsList.map(item => (
+                                <option key={item.id} value={item.id}>{item.name} (-{item.points}đ)</option>
+                              ))}
+                              <option value="custom">-- Lỗi khác (Tự nhập) --</option>
+                            </select>
+                            {selectedInfractionId === 'custom' && (
+                              <input type="text" placeholder="Nhập mô tả lỗi..." value={customInfractionDesc} onChange={(e) => setCustomInfractionDesc(e.target.value)} className="w-full bg-white border border-slate-300 rounded-lg p-2 text-sm" />
+                            )}
+                            <button onClick={handleAddInfractionRecord} disabled={!selectedStudentForGrading} className="w-full bg-rose-600 hover:bg-rose-700 disabled:bg-slate-300 text-white font-bold py-2.5 rounded-lg text-xs">
+                              - Ghi Nhận Vi Phạm
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'students' && (
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                      <h2 className="text-lg font-bold text-slate-900">Danh Sách Học Sinh</h2>
+                      {role === 'admin' && (
+                        <div className="flex space-x-2">
+                          <button onClick={() => setShowAddStudentModal(true)} className="bg-indigo-600 text-white text-xs px-3 py-2 rounded-lg font-semibold">+ Thêm</button>
+                          <button onClick={() => setShowTransferModal(true)} className="bg-amber-500 text-slate-900 text-xs px-3 py-2 rounded-lg font-semibold">Chuyển Tổ</button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {[1, 2, 3, 4].map((tId) => (
+                        <div key={tId} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                          <div className="bg-slate-100 px-4 py-3 border-b flex justify-between items-center">
+                            <h3 className="font-bold text-slate-800 text-sm">TỔ {tId}</h3>
+                            <span className="text-xs bg-slate-200 px-2 py-0.5 rounded-full">{students.filter(s => s.teamId === tId).length} em</span>
+                          </div>
+                          <div className="divide-y divide-slate-100">
+                            {students.filter(s => s.teamId === tId).map((student) => (
+                              <div key={student.id} className="p-3 flex justify-between items-center">
+                                <div>
+                                  <p className="font-semibold text-slate-800 text-sm">{student.name}</p>
+                                  <p className="text-xs text-slate-500">SĐT: {maskPhone(student.phone)}</p>
+                                </div>
+                                {role === 'admin' && (
+                                  <div className="flex space-x-1">
+                                    <button onClick={() => setEditingStudent(student)} className="text-slate-400 hover:text-indigo-600 p-1"><Edit3 className="w-4 h-4" /></button>
+                                    <button onClick={() => handleDeleteStudent(student.id, student.name)} className="text-slate-400 hover:text-rose-600 p-1"><Trash2 className="w-4 h-4" /></button>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'infractions' && (
+                  <div className="max-w-4xl mx-auto space-y-6">
+                    <div className="flex justify-between items-center bg-white p-4 rounded-xl border shadow-sm">
+                      <h2 className="text-lg font-bold text-slate-900">Danh Mục Lỗi Vi Phạm</h2>
+                      {role === 'admin' && (
+                        <button onClick={() => setShowInfractionModal(true)} className="bg-indigo-600 text-white text-xs px-3.5 py-2 rounded-lg font-semibold">+ Thêm Lỗi</button>
+                      )}
+                    </div>
+                    <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-100 text-slate-600 font-bold uppercase text-xs">
+                          <tr>
+                            <th className="p-3">Tên Lỗi</th>
+                            <th className="p-3">Điểm Trừ</th>
+                            {role === 'admin' && <th className="p-3 text-right">Xóa</th>}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {infractionsList.map((item) => (
+                            <tr key={item.id} className="hover:bg-slate-50">
+                              <td className="p-3 font-semibold">{item.name}</td>
+                              <td className="p-3"><span className="bg-rose-100 text-rose-800 font-bold px-2 py-1 rounded text-xs">-{item.points}đ</span></td>
+                              {role === 'admin' && (
+                                <td className="p-3 text-right">
+                                  <button onClick={() => handleDeleteInfractionCatalog(item.id)} className="text-slate-400 hover:text-rose-600"><Trash2 className="w-4 h-4" /></button>
+                                </td>
+                              )}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'duty' && (
+                  <div className="max-w-4xl mx-auto space-y-6">
+                    <div className="bg-white p-6 rounded-xl border shadow-sm">
+                      <h2 className="text-lg font-bold text-slate-900 mb-4">Lịch Trực Nhật</h2>
+                      <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                        {[
+                          { day: 'Thứ Hai', team: ((selectedWeekTab + 0) % 4) + 1 },
+                          { day: 'Thứ Ba', team: ((selectedWeekTab + 1) % 4) + 1 },
+                          { day: 'Thứ Tư', team: ((selectedWeekTab + 2) % 4) + 1 },
+                          { day: 'Thứ Năm', team: ((selectedWeekTab + 3) % 4) + 1 },
+                          { day: 'Thứ Sáu', team: ((selectedWeekTab + 0) % 4) + 1 }
+                        ].map((item, idx) => (
+                          <div key={idx} className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-center">
+                            <span className="text-xs font-bold text-slate-500 block mb-1">{item.day}</span>
+                            <span className="inline-block bg-indigo-600 text-white font-extrabold px-3 py-1 rounded-full text-xs">TỔ {item.team}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'ranking' && (
+                  <div className="space-y-6">
+                    <div className="bg-white p-4 rounded-xl border shadow-sm">
+                      <h2 className="text-lg font-bold text-slate-900">Bảng Xếp Hạng Tuần {selectedWeekTab}</h2>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                      {[...teamStats].sort((a, b) => b.weeklyScore - a.weeklyScore).map((t, idx) => (
+                        <div key={t.teamId} className={`p-4 rounded-xl border ${idx === 0 ? 'bg-amber-50 border-amber-300' : 'bg-white'}`}>
+                          <span className="text-xs font-bold text-slate-500">Hạng #{idx + 1}</span>
+                          <h4 className="text-xl font-black mt-1">TỔ {t.teamId}</h4>
+                          <p className="text-2xl font-extrabold text-indigo-600 my-2">{t.weeklyScore} đ</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </main>
+
+              {/* MODALS */}
+              {showLoginModal && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+                    <h3 className="text-lg font-bold mb-4">Đăng Nhập</h3>
+                    <form onSubmit={handleLogin} className="space-y-4">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button type="button" onClick={() => setLoginRoleTarget('admin')} className={`py-2 rounded-lg text-xs font-bold border ${loginRoleTarget === 'admin' ? 'bg-indigo-600 text-white' : 'bg-slate-50'}`}>Admin</button>
+                        <button type="button" onClick={() => setLoginRoleTarget('verifier')} className={`py-2 rounded-lg text-xs font-bold border ${loginRoleTarget === 'verifier' ? 'bg-indigo-600 text-white' : 'bg-slate-50'}`}>Người Duyệt</button>
+                      </div>
+                      <input type="password" value={inputPassword} onChange={(e) => setInputPassword(e.target.value)} placeholder="Nhập mật khẩu..." className="w-full border rounded-lg p-2 text-sm" required />
+                      {authError && <p className="text-xs text-rose-600">{authError}</p>}
+                      <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-2 rounded-lg text-xs">Xác Nhận</button>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {showWeekModal && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl">
+                    <h3 className="font-bold mb-2">Đổi Tuần Học</h3>
+                    <select value={pendingWeek} onChange={(e) => setPendingWeek(Number(e.target.value))} className="w-full border rounded-lg p-2 text-sm font-bold mb-4">
+                      {Array.from({ length: WEEKS_COUNT }, (_, i) => i + 1).map((w) => (<option key={w} value={w}>Tuần {w}</option>))}
+                    </select>
+                    <div className="flex space-x-2">
+                      <button onClick={() => setShowWeekModal(false)} className="flex-1 bg-slate-100 py-2 rounded-lg text-xs font-bold">Hủy</button>
+                      <button onClick={confirmWeekChange} className="flex-1 bg-amber-500 py-2 rounded-lg text-xs font-bold">Xác Nhận</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {showAddStudentModal && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+                    <h3 className="font-bold mb-4">Thêm Học Sinh</h3>
+                    <form onSubmit={handleAddStudent} className="space-y-4">
+                      <input type="text" required placeholder="Họ và tên..." value={newStudent.name} onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })} className="w-full border rounded-lg p-2 text-sm" />
+                      <select value={newStudent.teamId} onChange={(e) => setNewStudent({ ...newStudent, teamId: Number(e.target.value) })} className="w-full border rounded-lg p-2 text-sm">
+                        {[1, 2, 3, 4].map((t) => (<option key={t} value={t}>Tổ {t}</option>))}
+                      </select>
+                      <input type="text" placeholder="Số điện thoại..." value={newStudent.phone} onChange={(e) => setNewStudent({ ...newStudent, phone: e.target.value })} className="w-full border rounded-lg p-2 text-sm" />
+                      <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-2 rounded-lg text-xs">Lưu</button>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {showTransferModal && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+                    <h3 className="font-bold mb-4">Chuyển Tổ</h3>
+                    <form onSubmit={handleTransferTeam} className="space-y-4">
+                      <select value={transferTarget.studentId} onChange={(e) => setTransferTarget({ ...transferTarget, studentId: e.target.value })} className="w-full border rounded-lg p-2 text-sm" required>
+                        <option value="">-- Chọn học sinh --</option>
+                        {students.map((s) => (<option key={s.id} value={s.id}>{s.name} (Tổ {s.teamId})</option>))}
+                      </select>
+                      <select value={transferTarget.toTeamId} onChange={(e) => setTransferTarget({ ...transferTarget, toTeamId: Number(e.target.value) })} className="w-full border rounded-lg p-2 text-sm">
+                        {[1, 2, 3, 4].map((t) => (<option key={t} value={t}>Tổ {t}</option>))}
+                      </select>
+                      <button type="submit" className="w-full bg-amber-500 text-slate-900 font-bold py-2 rounded-lg text-xs">Xác Nhận</button>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {showInfractionModal && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+                    <h3 className="font-bold mb-4">Thêm Lỗi Mẫu</h3>
+                    <form onSubmit={handleAddInfractionCatalog} className="space-y-4">
+                      <input type="text" required placeholder="Tên lỗi..." value={newInfractionItem.name} onChange={(e) => setNewInfractionItem({ ...newInfractionItem, name: e.target.value })} className="w-full border rounded-lg p-2 text-sm" />
+                      <input type="number" min="1" required value={newInfractionItem.points} onChange={(e) => setNewInfractionItem({ ...newInfractionItem, points: e.target.value })} className="w-full border rounded-lg p-2 text-sm" />
+                      <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-2 rounded-lg text-xs">Thêm</button>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {editingStudent && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+                    <h3 className="font-bold mb-4">Sửa Học Sinh</h3>
+                    <form onSubmit={handleUpdateStudent} className="space-y-4">
+                      <input type="text" required value={editingStudent.name} onChange={(e) => setEditingStudent({ ...editingStudent, name: e.target.value })} className="w-full border rounded-lg p-2 text-sm" />
+                      <input type="text" value={editingStudent.phone} onChange={(e) => setEditingStudent({ ...editingStudent, phone: e.target.value })} className="w-full border rounded-lg p-2 text-sm" />
+                      <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-2 rounded-lg text-xs">Cập Nhật</button>
+                    </form>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
         }
 
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
