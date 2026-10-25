@@ -134,7 +134,7 @@
             setTimeout(() => setToast(null), 3000);
           };
 
-          // --- TÍNH NĂNG XUẤT & NHẬP DỮ LIỆU ĐỂ CHIA SẺ ---
+          // --- TÍNH NĂNG XUẤT & NHẬP DỮ LIỆU ĐỂ ĐỒNG BỘ ---
           const handleExportData = () => {
             const dataToExport = { students, records, infractionsList, currentWeek };
             const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
@@ -160,7 +160,7 @@
                   setCurrentWeek(parsed.currentWeek);
                   setSelectedWeekTab(parsed.currentWeek);
                 }
-                showNotification('Khôi phục dữ liệu thành công!');
+                showNotification('Khôi phục và đồng bộ dữ liệu thành công!');
               } catch (err) {
                 showNotification('File dữ liệu không hợp lệ!', 'error');
               }
@@ -187,7 +187,7 @@
                 setInputPassword('');
                 showNotification('Đã đăng nhập quyền Người duyệt!');
               } else {
-                setAuthError('Mật khẩu không đúng! (Gợi ý: 123)');
+                setAuthError('Mật khẩu không đúng!');
               }
             }
           };
@@ -386,13 +386,13 @@
                   </div>
 
                   <div className="flex items-center space-x-3">
-                    {/* KHU VỰC XUẤT/NHẬP DỮ LIỆU ĐỂ CHIA SẺ CHO NGƯỜI KHÁC */}
+                    {/* NÚT SAO LƯU & PHỤC HỒI DỮ LIỆU */}
                     <div className="flex items-center space-x-1 bg-indigo-800 px-3 py-1.5 rounded-lg border border-indigo-700">
-                      <button onClick={handleExportData} className="text-xs text-amber-300 hover:text-amber-200 font-semibold px-1" title="Tải file dữ liệu để gửi cho người khác">
+                      <button onClick={handleExportData} className="text-xs text-amber-300 hover:text-amber-200 font-semibold px-1">
                         📤 Sao Lưu
                       </button>
                       <span className="text-indigo-500">|</span>
-                      <label className="text-xs text-emerald-300 hover:text-emerald-200 font-semibold px-1 cursor-pointer" title="Tải file dữ liệu lên để đồng bộ">
+                      <label className="text-xs text-emerald-300 hover:text-emerald-200 font-semibold px-1 cursor-pointer">
                         📥 Phục Hồi
                         <input type="file" accept=".json" onChange={handleImportData} className="hidden" />
                       </label>
